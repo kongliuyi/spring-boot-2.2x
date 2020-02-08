@@ -1,0 +1,19 @@
+server:
+  port: 9001
+
+
+
+spring:
+  profiles:
+    active: dev
+
+#  配置 banner
+  banner:
+    location: banner/banner.txt
+    image:
+      location: banner/image/banner.jpg
+
+# 第二种方式配置应用容器初始化
+context:
+  initializer:
+    classes: org.springframework.boot.analysis.context.initializer.CustomFormYmlApplicationContextInitializer

@@ -1,0 +1,7 @@
+# Environment Post Processors
+org.springframework.boot.env.EnvironmentPostProcessor=\
+org.springframework.boot.analysis.property.source.CustomPropertySource
+
+# Initializers
+org.springframework.context.ApplicationContextInitializer=\
+org.springframework.boot.analysis.context.initializer.CustomFormFactoriesApplicationContextInitializer

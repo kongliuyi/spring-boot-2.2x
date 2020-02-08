@@ -67,14 +67,18 @@ class SpringApplicationBannerPrinter {
 	}
 
 	Banner print(Environment environment, Class<?> sourceClass, PrintStream out) {
+		// 根据配置环境获取 Banner 路径并解析 Banner
 		Banner banner = getBanner(environment);
+		// 打印输出
 		banner.printBanner(environment, sourceClass, out);
 		return new PrintedBanner(banner, sourceClass);
 	}
 
 	private Banner getBanner(Environment environment) {
 		Banners banners = new Banners();
+		// 获取 ImageBanner 图片
 		banners.addIfNotNull(getImageBanner(environment));
+		// 获取 ResourceBanner 图片
 		banners.addIfNotNull(getTextBanner(environment));
 		if (banners.hasAtLeastOneBanner()) {
 			return banners;
@@ -86,6 +90,7 @@ class SpringApplicationBannerPrinter {
 	}
 
 	private Banner getTextBanner(Environment environment) {
+		// 优先配置文件 spring.banner.location 属性值，默认 classpath：banner.txt
 		String location = environment.getProperty(BANNER_LOCATION_PROPERTY, DEFAULT_BANNER_LOCATION);
 		Resource resource = this.resourceLoader.getResource(location);
 		if (resource.exists()) {
@@ -95,6 +100,7 @@ class SpringApplicationBannerPrinter {
 	}
 
 	private Banner getImageBanner(Environment environment) {
+		// 优先配置文件 spring.banner.image.location 属性值，默认 classpath：banner."gif", "jpg", "png"
 		String location = environment.getProperty(BANNER_IMAGE_LOCATION_PROPERTY);
 		if (StringUtils.hasLength(location)) {
 			Resource resource = this.resourceLoader.getResource(location);

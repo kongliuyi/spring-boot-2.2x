@@ -153,6 +153,7 @@ class BeanDefinitionLoader {
 			GroovyBeanDefinitionSource loader = BeanUtils.instantiateClass(source, GroovyBeanDefinitionSource.class);
 			load(loader);
 		}
+		// 如果该 source 是 注解类，将 source 注册到 BeanDefinitions 中
 		if (isComponent(source)) {
 			this.annotatedReader.register(source);
 			return 1;

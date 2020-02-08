@@ -61,6 +61,7 @@ public class ContextIdApplicationContextInitializer
 		if (parent != null && parent.containsBean(ContextId.class.getName())) {
 			return parent.getBean(ContextId.class).createChildId();
 		}
+		// 首先从 environment 中 spring.application.name 找，没有就用默认名 application
 		return new ContextId(getApplicationId(applicationContext.getEnvironment()));
 	}
 

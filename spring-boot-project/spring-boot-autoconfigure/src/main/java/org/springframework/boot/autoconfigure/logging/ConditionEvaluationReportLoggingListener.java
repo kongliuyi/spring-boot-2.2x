@@ -80,9 +80,10 @@ public class ConditionEvaluationReportLoggingListener
 	@Override
 	public void initialize(ConfigurableApplicationContext applicationContext) {
 		this.applicationContext = applicationContext;
+		// 向容器绑定一个 ConditionEvaluationReportListener 事件监听器，该监听器只支持 ContextRefreshedEvent、ApplicationFailedEvent 两种事件
 		applicationContext.addApplicationListener(new ConditionEvaluationReportListener());
 		if (applicationContext instanceof GenericApplicationContext) {
-			// Get the report early in case the context fails to load
+			// Get the report early in case the context fails to load 尽早获取报告，以防上下文无法加载
 			this.report = ConditionEvaluationReport.get(this.applicationContext.getBeanFactory());
 		}
 	}
@@ -90,17 +91,22 @@ public class ConditionEvaluationReportLoggingListener
 	protected void onApplicationEvent(ApplicationEvent event) {
 		ConfigurableApplicationContext initializerApplicationContext = this.applicationContext;
 		if (event instanceof ContextRefreshedEvent) {
+			// 遇到 ContextRefreshedEvent 事件，根据绑定应用上下文是否活跃作相应报告
 			if (((ApplicationContextEvent) event).getApplicationContext() == initializerApplicationContext) {
+				// 事件应用上下文是该初始化器所绑定的应用上下文的话才报告
 				logAutoConfigurationReport();
 			}
 		}
 		else if (event instanceof ApplicationFailedEvent
 				&& ((ApplicationFailedEvent) event).getApplicationContext() == initializerApplicationContext) {
+			// 遇到 ApplicationFailedEvent 事件，说明应用程序启动失败，做应用崩溃报告
+			// 事件应用上下文是该初始化器所绑定的应用上下文的话才报告
 			logAutoConfigurationReport(true);
 		}
 	}
 
 	private void logAutoConfigurationReport() {
+		// 如果所绑定应用上下文不活跃则认为是崩溃，否则认为是正常
 		logAutoConfigurationReport(!this.applicationContext.isActive());
 	}
 

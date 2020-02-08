@@ -1,12 +1,29 @@
 package org.springframework.boot.analysis;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-
+/**
+ * @Description
+ * @Author kongLiuYi
+ * @Date 2020/2/3 0006 12:06
+ */
 @SpringBootApplication
-public class SpringBootAnalysisApplication {
+@Slf4j
+public class SpringBootAnalysisApplication  implements ApplicationRunner {
+	@Value("${spring.name}")
+	private String name;
     public static void main(String[] args) {
         SpringApplication.run(SpringBootAnalysisApplication.class, args);
     }
+
+	@Override
+	public void run(ApplicationArguments args) throws Exception {
+		log.info("{}",name);
+		System.out.println("name:"+name);
+	}
 }
