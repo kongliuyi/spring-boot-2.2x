@@ -220,11 +220,21 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 		return this::selfInitialize;
 	}
 
+	// 如下方法目前是靠 debug 方式调用栈来定位，但是根据什么原理跳进如下代码尚不清楚，等我以后研究了 tomcat 源码在来查看，
 	private void selfInitialize(ServletContext servletContext) throws ServletException {
+		// 使用给定的完全加载的 ServletContext 准备 WebApplicationContext  ---servletContext = ApplicationContextFacade
 		prepareWebApplicationContext(servletContext);
+		// 将特定于 Web 的作用域 bean（“application”） 注册到 IOC 容器中
 		registerApplicationScope(servletContext);
+		// 将特定于 Web 的环境 bean（"servletContext",“servletConfig”。“contextParameters”，“contextAttributes”） 注册到 IOC 容器中
 		WebApplicationContextUtils.registerEnvironmentBeans(getBeanFactory(), servletContext);
 		for (ServletContextInitializer beans : getServletContextInitializerBeans()) {
+			/**  向 servletContext 设置或添加默认 dispatcherServlet 和 Filter：
+			 *  DispatcherServletRegistrationBean  设置 "dispatcherServlet urls=[/]"
+			 *  FilterRegistrationBean  添加 "characterEncodingFilter urls=[/*] order=-2147483648"
+			 *  FilterRegistrationBean  添加 "formContentFilter urls=[/*] order=-9900"
+			 *  FilterRegistrationBean  添加 "requestContextFilter urls=[/*] order=-105"
+			 */
 			beans.onStartup(servletContext);
 		}
 	}
@@ -233,6 +243,7 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 		ServletContextScope appScope = new ServletContextScope(servletContext);
 		getBeanFactory().registerScope(WebApplicationContext.SCOPE_APPLICATION, appScope);
 		// Register as ServletContext attribute, for ContextCleanupListener to detect it.
+		// 在 ServletContext attribute 注册为 ServletContextScope ，以便 ContextCleanupListener 检测它。
 		servletContext.setAttribute(ServletContextScope.class.getName(), appScope);
 	}
 
