@@ -150,6 +150,7 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 	protected void onRefresh() {
 		super.onRefresh();
 		try {
+			// 创建 WebServer 服务器（Tomcat 入口）
 			createWebServer();
 		}
 		catch (Throwable ex) {
@@ -160,8 +161,10 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 	@Override
 	protected void finishRefresh() {
 		super.finishRefresh();
+		// 开始 WebServer ，tomcat 链接
 		WebServer webServer = startWebServer();
 		if (webServer != null) {
+			// 发布 ServletWebServerInitializedEvent 事件
 			publishEvent(new ServletWebServerInitializedEvent(webServer, this));
 		}
 	}
@@ -175,8 +178,12 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 	private void createWebServer() {
 		WebServer webServer = this.webServer;
 		ServletContext servletContext = getServletContext();
+		// 在前面我并没有在上下文中赋值 webServer 和 servletContext
 		if (webServer == null && servletContext == null) {
+			// 因为上下文中没有，所以去 IOC 容器找。
 			ServletWebServerFactory factory = getWebServerFactory();
+			// 这一步才是核心，主要初始 Tomcat 某些属性，以及构建 TomcatWebServer。
+			// 具体详情可进入->TomcatServletWebServerFactory.getWebServer()
 			this.webServer = factory.getWebServer(getSelfInitializer());
 		}
 		else if (servletContext != null) {
@@ -187,7 +194,7 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 				throw new ApplicationContextException("Cannot initialize servlet context", ex);
 			}
 		}
-		initPropertySources();
+		initPropertySources();//初始化有关 Servlet 的 PropertySources
 	}
 
 	/**
@@ -198,6 +205,8 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 	 */
 	protected ServletWebServerFactory getWebServerFactory() {
 		// Use bean names so that we don't consider the hierarchy
+		// 如果加了 spring-boot-starter-web 的包，则 springboot 默认注册了 TomcatServletWebServerFactory，
+		// 具体详情请看 ServletWebServerFactoryAutoConfiguration
 		String[] beanNames = getBeanFactory().getBeanNamesForType(ServletWebServerFactory.class);
 		if (beanNames.length == 0) {
 			throw new ApplicationContextException("Unable to start ServletWebServerApplicationContext due to missing "

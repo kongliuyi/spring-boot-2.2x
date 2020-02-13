@@ -54,6 +54,7 @@ public class WebServerFactoryCustomizerBeanPostProcessor implements BeanPostProc
 
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		// 因为 springboot 默认服务器是 Tomcat， 所以 bean 是 TomcatServletWebServerFactory
 		if (bean instanceof WebServerFactory) {
 			postProcessBeforeInitialization((WebServerFactory) bean);
 		}
@@ -67,6 +68,7 @@ public class WebServerFactoryCustomizerBeanPostProcessor implements BeanPostProc
 
 	@SuppressWarnings("unchecked")
 	private void postProcessBeforeInitialization(WebServerFactory webServerFactory) {
+		// 调用 WebServerFactoryCustomizer 实现类 customize() 方法，为 WebServerFactory 赋值某些自定义值
 		LambdaSafe.callbacks(WebServerFactoryCustomizer.class, getCustomizers(), webServerFactory)
 				.withLogger(WebServerFactoryCustomizerBeanPostProcessor.class)
 				.invoke((customizer) -> customizer.customize(webServerFactory));
@@ -74,8 +76,16 @@ public class WebServerFactoryCustomizerBeanPostProcessor implements BeanPostProc
 
 	private Collection<WebServerFactoryCustomizer<?>> getCustomizers() {
 		if (this.customizers == null) {
-			// Look up does not include the parent context
+			// Look up does not include the parent context   获取所有 WebServerFactoryCustomizer 实现类
 			this.customizers = new ArrayList<>(getWebServerFactoryCustomizerBeans());
+			/**
+			 *  SpringBoot 默认5个 WebServerFactoryCustomizer（向 WebServerFactory 初始化某些自定义配置）如下：
+			 *  1.TomcatWebSocketServletWebServerCustomizer：
+			 *  2.ServletWebServerFactoryCustomizer：例如 网络地址，端口号，SSL 等
+			 *  3.TomcatServletWebServerFactoryCustomizer：
+			 *  4.TomcatWebServerFactoryCustomizer：
+			 *  5.HttpEncodingAutoConfiguration$LocaleCharsetMappingsCustomizer：
+			 */
 			this.customizers.sort(AnnotationAwareOrderComparator.INSTANCE);
 			this.customizers = Collections.unmodifiableList(this.customizers);
 		}

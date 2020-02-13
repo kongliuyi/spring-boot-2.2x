@@ -22,7 +22,7 @@ public class SpringBootAnalysisApplication  implements ApplicationRunner {
     }
 
 	@Override
-	public void run(ApplicationArguments args) throws Exception {
+	public void run(ApplicationArguments args)  {
 		log.info("{}",name);
 		System.out.println("name:"+name);
 	}
