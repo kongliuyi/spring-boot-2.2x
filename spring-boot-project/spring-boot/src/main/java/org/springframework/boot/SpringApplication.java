@@ -334,8 +334,10 @@ public class SpringApplication {
 		// ConfigurableApplicationContext Spring 的上下文
 		ConfigurableApplicationContext context = null;
 		Collection<SpringBootExceptionReporter> exceptionReporters = new ArrayList<>();
+		// 在 System 配置属性  java.awt.headless，默认 true
 		configureHeadlessProperty();
-		// 1、获取 SpringApplicationRunListener 广播器,其作用是发布应用运行时的事件 （ 从 META-INF/spring.factories 文件中获取，默认 EventPublishingRunListener）
+		// 1、获取 SpringApplicationRunListeners 广播器，其封装 SpringApplicationRunListener 集合,
+		// （SpringApplicationRunListener 从 META-INF/spring.factories 文件中获取，默认 EventPublishingRunListener，其作用是发布应用运行时事件）
 		SpringApplicationRunListeners listeners = getRunListeners(args);
 		// 2、广播器 EventPublishingRunListener 发布 ApplicationStartingEvent 事件（代表应用开始），从而启动相应监听器（初始化 SpringApplication 时从 META-INF/spring.factories 文件中获取默认监听器）。
 		listeners.starting();
@@ -396,7 +398,8 @@ public class SpringApplication {
 		listeners.environmentPrepared(environment);
 		// 将环境绑定到 SpringApplication 中
 		bindToSpringApplication(environment);
-		if (!this.isCustomEnvironment) { // 自定义环境 默认 false
+		if (!this.isCustomEnvironment) {
+			// 自定义环境 默认 false
 			environment = new EnvironmentConverter(getClassLoader()).convertEnvironmentIfNecessary(environment,
 					deduceEnvironmentClass());
 		}
@@ -537,7 +540,8 @@ public class SpringApplication {
 	 */
 	protected void configureEnvironment(ConfigurableEnvironment environment, String[] args) {
 		if (this.addConversionService) {
-			ConversionService conversionService = ApplicationConversionService.getSharedInstance(); // 如果为空 返回一个默认 ApplicationConversionService
+			// 如果为空 返回一个默认 ApplicationConversionService
+			ConversionService conversionService = ApplicationConversionService.getSharedInstance();
 			environment.setConversionService((ConfigurableConversionService) conversionService);
 		}
 		// 将配置的启动参数 args 封装成 SimpleCommandLinePropertySource 加入环境中。

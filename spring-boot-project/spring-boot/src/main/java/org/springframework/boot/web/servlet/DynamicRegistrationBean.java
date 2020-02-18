@@ -105,11 +105,13 @@ public abstract class DynamicRegistrationBean<D extends Registration.Dynamic> ex
 
 	@Override
 	protected final void register(String description, ServletContext servletContext) {
+		// 向 servletContext 注册 Servlet ，如果是 tomcat 服务器 servletContext 默认是 ApplicationContextFacade
 		D registration = addRegistration(description, servletContext);
 		if (registration == null) {
 			logger.info(StringUtils.capitalize(description) + " was not registered (possibly already registered?)");
 			return;
 		}
+		// 配置某些参数 例如 urlMapping ，其他参数作用不清楚，以后读完 Tomcat 源码在来说明
 		configure(registration);
 	}
 

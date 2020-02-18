@@ -8,7 +8,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * @Description
+ * @Description 以官方文档为主：https://docs.spring.io/spring-boot/docs/2.2.1.RELEASE/reference/html/spring-boot-features.html
  * @Author kongLiuYi
  * @Date 2020/2/3 0006 12:06
  */

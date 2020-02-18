@@ -62,6 +62,8 @@ import org.springframework.util.StringUtils;
  * auto-configuration}. This class can also be subclassed if a custom variant of
  * {@link EnableAutoConfiguration @EnableAutoConfiguration} is needed.
  *
+ * 因为实现了 DeferredImportSelector 接口，调用链就比较繁琐了。具体可以看我 Spring 源码介绍
+ * 这里我只标注当前类的调用栈用 ①②③④ ...方式表达
  * @author Phillip Webb
  * @author Andy Wilkinson
  * @author Stephane Nicoll
@@ -113,12 +115,19 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 			return EMPTY_ENTRY;
 		}
 		AnnotationAttributes attributes = getAttributes(annotationMetadata);
+		// 从 META-INF/spring.factories 文件下获取有关 EnableAutoConfiguration.class 对应值
 		List<String> configurations = getCandidateConfigurations(annotationMetadata, attributes);
+		// 移除副本
 		configurations = removeDuplicates(configurations);
+		// 通过注解信息获取需要排除 class
 		Set<String> exclusions = getExclusions(annotationMetadata, attributes);
+		// 检查排除的 Class
 		checkExcludedClasses(configurations, exclusions);
+		// 将需要排除的 class 从 configurations 移除
 		configurations.removeAll(exclusions);
+		// 过滤一遍
 		configurations = filter(configurations, autoConfigurationMetadata);
+		// 发布 AutoConfigurationImportEvent 事件
 		fireAutoConfigurationImportEvents(configurations, exclusions);
 		return new AutoConfigurationEntry(configurations, exclusions);
 	}
@@ -283,11 +292,14 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 	}
 
 	private void fireAutoConfigurationImportEvents(List<String> configurations, Set<String> exclusions) {
+		// 获取 AutoConfigurationImportListener 类型监听器，
+		// 默认的有 ConditionEvaluationReportAutoConfigurationImportListener
 		List<AutoConfigurationImportListener> listeners = getAutoConfigurationImportListeners();
 		if (!listeners.isEmpty()) {
 			AutoConfigurationImportEvent event = new AutoConfigurationImportEvent(this, configurations, exclusions);
 			for (AutoConfigurationImportListener listener : listeners) {
 				invokeAwareMethods(listener);
+				// 处理事件，该监听器作用记录自动装配的结果
 				listener.onAutoConfigurationImportEvent(event);
 			}
 		}
@@ -386,6 +398,12 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 			this.resourceLoader = resourceLoader;
 		}
 
+		/**
+		 * 首先调用这个方法！①
+		 * 如果没有意外的话：
+		 * @param annotationMetadata AutoConfigurationImportSelector 的 annotationMetadata
+		 * @param deferredImportSelector  AutoConfigurationImportSelector
+		 */
 		@Override
 		public void process(AnnotationMetadata annotationMetadata, DeferredImportSelector deferredImportSelector) {
 			Assert.state(deferredImportSelector instanceof AutoConfigurationImportSelector,
@@ -400,6 +418,10 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 			}
 		}
 
+		/**
+		 * 然后调用这个方法！②
+		 * @return
+		 */
 		@Override
 		public Iterable<Entry> selectImports() {
 			if (this.autoConfigurationEntries.isEmpty()) {
@@ -419,6 +441,9 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 
 		private AutoConfigurationMetadata getAutoConfigurationMetadata() {
 			if (this.autoConfigurationMetadata == null) {
+				// 加载（ META-INF/spring-autoconfigure-metadata.properties）配置文件的源信息
+				// 这里值得注意的是,源码并没有这个文件，但是在（spring-boot-autoconfigure/target/classes/META-INF/spring-autoconfigure-metadata.properties）存在
+				// 怎么生成原理，我不清楚.以后知道了再来说明
 				this.autoConfigurationMetadata = AutoConfigurationMetadataLoader.loadMetadata(this.beanClassLoader);
 			}
 			return this.autoConfigurationMetadata;

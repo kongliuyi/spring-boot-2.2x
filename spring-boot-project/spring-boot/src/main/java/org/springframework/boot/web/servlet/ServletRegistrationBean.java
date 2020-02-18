@@ -51,7 +51,9 @@ import org.springframework.util.StringUtils;
 public class ServletRegistrationBean<T extends Servlet> extends DynamicRegistrationBean<ServletRegistration.Dynamic> {
 
 	private static final String[] DEFAULT_MAPPINGS = { "/*" };
-
+	/**
+	 *  servlet 默认 DispatcherServlet
+	 */
 	private T servlet;
 
 	private Set<String> urlMappings = new LinkedHashSet<>();
@@ -174,7 +176,9 @@ public class ServletRegistrationBean<T extends Servlet> extends DynamicRegistrat
 
 	@Override
 	protected ServletRegistration.Dynamic addRegistration(String description, ServletContext servletContext) {
+		// 获取 Servlet 名字
 		String name = getServletName();
+		// 注册 Servlet
 		return servletContext.addServlet(name, this.servlet);
 	}
 

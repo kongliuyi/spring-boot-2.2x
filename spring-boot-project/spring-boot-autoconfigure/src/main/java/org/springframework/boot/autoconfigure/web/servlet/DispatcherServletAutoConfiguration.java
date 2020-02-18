@@ -65,8 +65,11 @@ import org.springframework.web.servlet.DispatcherServlet;
  */
 @AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE)
 @Configuration(proxyBeanMethods = false)
+// 仅在当前应用是一个 Servlet Web 应用时才生效
 @ConditionalOnWebApplication(type = Type.SERVLET)
+// 仅在类 DispatcherServlet 存在于 classPath 上时才生效
 @ConditionalOnClass(DispatcherServlet.class)
+// 在自动配置类 ServletWebServerFactoryAutoConfiguration 应用之后再应用
 @AutoConfigureAfter(ServletWebServerFactoryAutoConfiguration.class)
 public class DispatcherServletAutoConfiguration {
 
@@ -81,11 +84,24 @@ public class DispatcherServletAutoConfiguration {
 	public static final String DEFAULT_DISPATCHER_SERVLET_REGISTRATION_BEAN_NAME = "dispatcherServletRegistration";
 
 	@Configuration(proxyBeanMethods = false)
+	/**
+	 * 仅在条件 DefaultDispatcherServletCondition 被满足时才生效 :
+	 * DefaultDispatcherServletCondition 在类型为 DispatcherServlet 或者名称为 dispatcherServlet 的 bean 不存在时才被满足
+	 */
 	@Conditional(DefaultDispatcherServletCondition.class)
+	// 仅在类 ServletRegistration 存在于 classpath 上时才生效
 	@ConditionalOnClass(ServletRegistration.class)
+	// 确保前缀为 spring.http 和spring.mvc 的配置参数被加载到 bean HttpProperties 和 bean WebMvcProperties 中
 	@EnableConfigurationProperties({ HttpProperties.class, WebMvcProperties.class })
 	protected static class DispatcherServletConfiguration {
 
+		/**
+		 * 定义 bean DispatcherServlet, 使用名称 dispatcherServlet， 这是 Spring MVC 核心的前置控制器Servlet，
+		 * Spring MVC 定义的所有的控制器方法都最终经由该 DispatcherServlet 派发,具体作用可查看我 spring 源码
+		 * @param httpProperties spring.http 参数配置
+		 * @param webMvcProperties spring.mvc 参数配置
+		 * @return
+		 */
 		@Bean(name = DEFAULT_DISPATCHER_SERVLET_BEAN_NAME)
 		public DispatcherServlet dispatcherServlet(HttpProperties httpProperties, WebMvcProperties webMvcProperties) {
 			DispatcherServlet dispatcherServlet = new DispatcherServlet();
@@ -97,8 +113,17 @@ public class DispatcherServletAutoConfiguration {
 			return dispatcherServlet;
 		}
 
+		/**
+		 *  bean 存在时，给它起一个别名 multipartResolver，因为 DispatcherServlet 内部会固定使用该名字
+		 *  防止我们乱起 beanName
+		 *  题外话：在研究 Spring MVC 源码的时候，Spring MVC 并没有设置默认的 MultipartResolver。
+		 * @param resolver
+		 * @return
+		 */
 		@Bean
+		// 仅在类型为  MultipartResolver 的 bean 存在时才生效
 		@ConditionalOnBean(MultipartResolver.class)
+		// 仅在名称为 multipartResolver 的 bean 不存在时才生效
 		@ConditionalOnMissingBean(name = DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME)
 		public MultipartResolver multipartResolver(MultipartResolver resolver) {
 			// Detect if the user has created a MultipartResolver but named it incorrectly
@@ -111,9 +136,21 @@ public class DispatcherServletAutoConfiguration {
 	@Conditional(DispatcherServletRegistrationCondition.class)
 	@ConditionalOnClass(ServletRegistration.class)
 	@EnableConfigurationProperties(WebMvcProperties.class)
+	// 导入配置类 DispatcherServletConfiguration
 	@Import(DispatcherServletConfiguration.class)
 	protected static class DispatcherServletRegistrationConfiguration {
 
+		/**
+		 *  定义 bean DispatcherServletRegistrationBean，名称为 dispatcherServletRegistration
+		 * 	DispatcherServletRegistrationBean 继承自 ServletRegistrationBean,
+		 * 	该 bean dispatcherServletRegistration 的目的是将 DispatcherServletConfiguration 配置类中
+		 * 	所定义的 bean DispatcherServlet dispatcherServlet 注册到 Servlet 容器
+		 *
+		 * @param dispatcherServlet
+		 * @param webMvcProperties
+		 * @param multipartConfig
+		 * @return
+		 */
 		@Bean(name = DEFAULT_DISPATCHER_SERVLET_REGISTRATION_BEAN_NAME)
 		@ConditionalOnBean(value = DispatcherServlet.class, name = DEFAULT_DISPATCHER_SERVLET_BEAN_NAME)
 		public DispatcherServletRegistrationBean dispatcherServletRegistration(DispatcherServlet dispatcherServlet,
