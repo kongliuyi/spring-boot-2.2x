@@ -117,7 +117,7 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 		AnnotationAttributes attributes = getAttributes(annotationMetadata);
 		// 从 META-INF/spring.factories 文件下获取有关 EnableAutoConfiguration.class 对应值
 		List<String> configurations = getCandidateConfigurations(annotationMetadata, attributes);
-		// 移除副本
+		// 移除副本（去重）
 		configurations = removeDuplicates(configurations);
 		// 通过注解信息获取需要排除 class
 		Set<String> exclusions = getExclusions(annotationMetadata, attributes);
@@ -196,10 +196,13 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 	private void checkExcludedClasses(List<String> configurations, Set<String> exclusions) {
 		List<String> invalidExcludes = new ArrayList<>(exclusions.size());
 		for (String exclusion : exclusions) {
+			// 1.判断当前 AppClassLoader 加载器中是否存在对应的类型了；
+			// 2.configurations 不存在需要排除的 class
 			if (ClassUtils.isPresent(exclusion, getClass().getClassLoader()) && !configurations.contains(exclusion)) {
 				invalidExcludes.add(exclusion);
 			}
 		}
+		// 如果存在无效排除 class，则打印并抛出 IllegalStateException 异常。
 		if (!invalidExcludes.isEmpty()) {
 			handleInvalidExcludes(invalidExcludes);
 		}
@@ -236,8 +239,10 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 	}
 
 	private List<String> getExcludeAutoConfigurationsProperty() {
+		// StandardServletEnvironment implements ConfigurableWebEnvironment extends ConfigurableEnvironment
 		if (getEnvironment() instanceof ConfigurableEnvironment) {
 			Binder binder = Binder.get(getEnvironment());
+			// 由此我们也可以在 StandardServletEnvironment  中 spring.autoconfigure.exclude 属性配置需要排除 class
 			return binder.bind(PROPERTY_NAME_AUTOCONFIGURE_EXCLUDE, String[].class).map(Arrays::asList)
 					.orElse(Collections.emptyList());
 		}

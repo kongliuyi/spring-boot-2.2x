@@ -5,3 +5,7 @@ org.springframework.boot.analysis.property.source.CustomPropertySource
 # Initializers
 org.springframework.context.ApplicationContextInitializer=\
 org.springframework.boot.analysis.context.initializer.CustomFormFactoriesApplicationContextInitializer
+
+# Application Listeners
+org.springframework.context.ApplicationListener=\
+org.springframework.boot.analysis.context.listener.CustomApplicationListener

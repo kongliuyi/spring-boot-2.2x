@@ -67,6 +67,13 @@ public @interface SpringBootConfiguration {
 	 * equivalent to removing the {@code @Configuration} stereotype.
 	 * @return whether to proxy {@code @Bean} methods
 	 * @since 2.2
+	 *
+	 * 有了 proxyBeanMethods 属性后，配置类不会被代理了。
+	 * 主要是为了提高性能，如果你的 @Bean 方法之间没有调用关系的话可以把 proxyBeanMethods 设置为 false。
+	 * 否则，方法内部引用的类生产的类和 Spring 容器中类是两个类。
+	 *
+	 * 前面说了加了 proxyBeanMethods 之后不会被代理了，所以配置类和方法也可以使用 final 修饰了，
+	 * Spring 5.2 和 SpringBoot2.2x 之前的版本是强制校验的
 	 */
 	@AliasFor(annotation = Configuration.class)
 	boolean proxyBeanMethods() default true;

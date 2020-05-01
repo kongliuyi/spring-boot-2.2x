@@ -91,7 +91,7 @@ public class DispatcherServletAutoConfiguration {
 	@Conditional(DefaultDispatcherServletCondition.class)
 	// 仅在类 ServletRegistration 存在于 classpath 上时才生效
 	@ConditionalOnClass(ServletRegistration.class)
-	// 确保前缀为 spring.http 和spring.mvc 的配置参数被加载到 bean HttpProperties 和 bean WebMvcProperties 中
+	// 确保前缀为 spring.http 和 spring.mvc 的配置参数被加载到 bean HttpProperties 和 bean WebMvcProperties 中
 	@EnableConfigurationProperties({ HttpProperties.class, WebMvcProperties.class })
 	protected static class DispatcherServletConfiguration {
 
